@@ -47,9 +47,16 @@ export const getDashboard = async (req, res) => {
         const lessons = course.modules.flatMap((module) => module.lessons)
         const totalLessons = lessons.length
 
-       const completedLessons = lessons.filter(
-        lesson => progressMap.get(lesson.id) === "COMPLETED"
-    ).length;
+        const lessonIds = lessons.map((lesson) => lesson.id)
+
+        const userProgress = await prisma.userProgress.findMany({
+          where: {
+            userId,
+            lessonId: {
+              in: lessonIds
+            }
+          }
+        })
 
         const completedLessons = userProgress.filter(
           (p) => p.status === 'COMPLETED'
