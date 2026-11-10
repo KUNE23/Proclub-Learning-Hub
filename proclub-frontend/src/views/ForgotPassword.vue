@@ -49,7 +49,7 @@
               type="password"
               class="block w-full rounded-2xl border p-4 text-gray-900 outline-none transition-all focus:border-[#2C7047] focus:bg-white focus:ring-2 focus:ring-[#2C7047]/20"
               :class="errors.password ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50/50'"
-              placeholder="Minimal 8 karakter"
+              placeholder="Min. 8 karakter, ada huruf besar, kecil, angka & simbol"
             >
             <p v-if="errors.password" class="mt-1.5 text-xs font-semibold text-red-500">{{ errors.password }}</p>
           </div>
@@ -134,8 +134,14 @@ function validateReset() {
     errors.otp = 'Kode OTP harus 6 digit.'
   }
 
-  if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[a-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-    errors.password = 'Password wajib minimal 8 karakter, huruf besar, huruf kecil, dan angka.'
+  if (
+    form.password.length < 8 ||
+    !/[A-Z]/.test(form.password) ||
+    !/[a-z]/.test(form.password) ||
+    !/[0-9]/.test(form.password) ||
+    !/[^A-Za-z0-9]/.test(form.password)
+  ) {
+    errors.password = 'Password wajib minimal 8 karakter, huruf besar, huruf kecil, angka, dan special character.'
   }
 
   return !errors.email && !errors.otp && !errors.password
