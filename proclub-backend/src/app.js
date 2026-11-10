@@ -22,6 +22,10 @@ import path from 'path';
 
 const app = express();
 
+// Behind a proxy (Vercel, etc.) the client IP comes from X-Forwarded-For.
+// Trust the first proxy hop so express-rate-limit can identify users correctly.
+app.set('trust proxy', 1);
+
 const envOrigins = [
   process.env.FRONTEND_URL,
   process.env.APP_URL,
