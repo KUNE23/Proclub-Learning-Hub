@@ -71,12 +71,9 @@ app.use(helmet({
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (isAllowedOrigin(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    callback(new Error(`Not allowed by CORS: ${origin}`));
+    // Never throw here: throwing yields a 500 with no CORS headers.
+    // Deny by simply not enabling CORS for the origin.
+    callback(null, isAllowedOrigin(origin));
   },
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
