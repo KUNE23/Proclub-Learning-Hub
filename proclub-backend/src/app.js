@@ -21,11 +21,49 @@ import healthRoutes from './routes/healthRoutes.js';
 import path from 'path';
 
 const app = express();
-const allowedOrigins = [
-  'http://localhost:5173',
+
+const envOrigins = [
   process.env.FRONTEND_URL,
-  process.env.APP_URL
-].filter(Boolean);
+  process.env.APP_URL,
+  process.env.CORS_ORIGINS
+]
+  .filter(Boolean)
+  .flatMap((value) => value.split(','))
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  ...envOrigins
+]);
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  if (allowedOrigins.has(origin)) return true;
+
+  // Allow www and non-www variants of the same domain
+  try {
+    const { hostname, protocol } = new URL(origin);
+
+    for (const allowed of allowedOrigins) {
+      try {
+        const allowedUrl = new URL(allowed);
+        const base = allowedUrl.hostname.replace(/^www\./, '');
+
+        if (protocol === allowedUrl.protocol && hostname.replace(/^www\./, '') === base) {
+          return true;
+        }
+      } catch {
+        // allowed origin is not a full URL, ignore
+      }
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+};
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
@@ -33,15 +71,15 @@ app.use(helmet({
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
 
-    callback(new Error('Not allowed by CORS'));
+    callback(new Error(`Not allowed by CORS: ${origin}`));
   },
-  allowedHeaders: ['Content-Type', 'Authorization'], 
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
